@@ -1,0 +1,119 @@
+
+#lang sicp
+
+(define harry '())
+(define voldemort '())
+
+
+(define (stream-car s) (car s))
+(define (stream-cdr s) (force (cdr s)))
+
+
+(define-syntax cons-stream
+  (syntax-rules ()
+    ((cons-stream a b) (cons a (delay b)))))
+
+(define (play s1 s2 m1 r)
+  (begin 
+  (set! harry (cons-stream m1 harry))
+  (set! voldemort (cons-stream 1 voldemort)) 
+  (let* ((a1 0)  (a2 0) (a3 0)
+        (b1 1)  (b2 0) (b3 0)
+        (p1 m1) (p2 1) (c1 0) (c2 0))
+    (begin
+    (cond ((= m1 1) (set! a1 1))
+          ((= m1 2) (set! a2 1))
+          ((= m1 3) (set! a3 1)))
+    (define (who-win player1 player2)
+      (cond ((and (= player1 1) (= player2 3)) 1)
+            ((and (= player1 2) (= player2 1)) 1)
+            ((and (= player1 3) (= player2 2)) 1)
+            ((and (= player2 1) (= player1 3)) 2)
+            ((and (= player2 2) (= player1 1)) 2)
+            ((and (= player2 3) (= player1 2)) 2)
+            ((= player1 player2) 0)))
+    (cond ((= (who-win m1 1) 1) (set! c1 (+ c1 1)))
+          ((= (who-win m1 1) 2) (set! c2 (+ c2 1))))
+    (define (next-win-move move)
+      (cond ((= move 1) 2)
+            ((= move 2) 3)
+            (else 1)))
+    (define (max-move a b c)
+      (cond ( (and (> a b) (> a c)) a)
+            ( (and (> b a) (> b c)) b)
+            (else c)))
+    (define (inc-count1 p)
+      (cond ((= a1 p) (set! a1 (+ a1 1)))
+            ((= a2 p) (set! a2 (+ a2 1)))
+            (else (set! a3 (+ a3 1)))))
+    (define (inc-count2 p)
+      (cond ((= b1 p) (set! b1 (+ b1 1)))
+            ((= b2 p) (set! b2 (+ b2 1)))
+            (else (set! b3 (+ b3 1)))))
+    (define (swap)
+      (let* ((dummy p2))
+        (begin (set! p2 p1)
+               (set! p1 dummy))))
+    (define (play-game s1 s2 m1 r)
+      (cond ((and (and (= s1 1) (= s2 2)) (> r 1))
+             (begin
+               (set! voldemort (cons-stream (next-win-move (max-move a1 a2 a3)) voldemort))
+               (set! harry (cons-stream p2 harry))
+               (cond ((= (who-win p2 ( next-win-move (max-move a1 a2 a3))) 1) (set! c1 (+ c1 1)))
+                     ((= (who-win p2 ( next-win-move (max-move a1 a2 a3))) 2) (set! c2 (+ c2 1))))
+               (inc-count1 p2)
+               (set! p2 (next-win-move (max-move a1 a2 a3)))
+               (play-game s1 s2 m1 (- r 1))))
+            ((and (and (= s1 2) (= s2 2)) (> r 1))
+             (begin
+               (set! harry (cons-stream (next-win-move (max-move b1 b2 b3)) harry))
+               (set! voldemort (cons-stream p1 voldemort))
+               (cond ((= (who-win ( next-win-move (max-move b1 b2 b3)) p1) 1) (set! c1 (+ c1 1)))
+                     ((= (who-win ( next-win-move (max-move b1 b2 b3)) p1) 2) (set! c2 (+ c2 1))))
+               (inc-count2 p1)
+               (set! p1 (next-win-move (max-move b1 b2 b3)))
+               (play-game s1 s2 m1 (- r 1))))
+            ((and (and (= s1 1) (= s2 1)) (> r 1))
+             (begin
+               (set! harry (cons-stream p2 harry))
+               (set! voldemort (cons-stream p1 voldemort))
+               (cond ((= (who-win p2 p1) 1) (set! c1 (+ c1 1)))
+                     ((= (who-win p2 p1) 2) (set! c2 (+ c2 1))))
+               (swap)
+               (play-game s1 s2 m1 (- r 1))))
+            ((and (and (= s1 2) (= s2 2)) (> r 1))
+             (begin
+               (set! harry (cons-stream (next-win-move (max-move b1 b2 b3)) harry))
+               (set! voldemort (cons-stream  (next-win-move (max-move a1 a2 a3)) voldemort) )
+               (cond ((= (who-win (next-win-move (max-move b1 b2 b3)) (next-win-move (max-move a1 a2 a3))) 1) (set! c1 (+ c1 1)))
+                     ((= (who-win (next-win-move (max-move b1 b2 b3)) (next-win-move (max-move a1 a2 a3))) 2) (set! c2 (+ c2 1))))
+               (inc-count1 (next-win-move (max-move b1 b2 b3)))
+               (inc-count2 (next-win-move (max-move a1 a2 a3)))
+               (set! p1 (next-win-move (max-move b1 b2 b3)))
+               (set! p2 (next-win-move (max-move a1 a2 a3)))
+               (play-game s1 s2 m1 (- r 1))))
+            (else (cond ((> c1 c2) 'first)
+                        ((< c1 c2) 'second)
+                        (else 'tie))) ))
+      (play-game s1 s2 m1 r)))))
+
+
+  
+
+(play 2 2 2 16)
+
+
+
+(define (stream-ref s n)
+  (if (= n 0)
+      (stream-car s)
+      (stream-ref (stream-cdr s) (- n 1))))
+
+(stream-ref harry 0)
+(stream-ref harry 1)
+
+
+
+;(stream-cdr harry)
+
+;harry

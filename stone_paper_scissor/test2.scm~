@@ -1,0 +1,18 @@
+#lang racket
+
+(stream-ref harry 0)
+(stream-ref harry 1)
+(stream-ref harry 2)
+(stream-ref harry 3)
+(stream-ref harry 4)
+(stream-ref harry 5)
+(stream-ref harry 6)
+(stream-ref harry 7)
+(stream-ref harry 8)
+(stream-ref harry 9)
+(stream-ref harry 10)
+(stream-ref harry 11)
+(stream-ref harry 12)
+(stream-ref harry 13)
+(stream-ref harry 14)
+(stream-ref harry 15)
